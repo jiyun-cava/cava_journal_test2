@@ -253,8 +253,7 @@ function writers(){
 }
 function about(){
   leftView='about';
-  L.innerHTML=`<div class="band"><span>About CAVA LIFE</span></div>
-  <section class="about"><p class="lg">${ABOUT.first}</p><p>${ABOUT.lede}</p>${ABOUT.paras.map(p=>`<p>${p}</p>`).join('')}
+  L.innerHTML=`<section class="about">${ABOUT.paras.map(p=>`<p>${p}</p>`).join('')}
     <p class="sm" style="margin-top:var(--u)"><a href="https://instagram.com/${ABOUT.ig}"><u>Instagram @${ABOUT.ig}</u></a><br><a href="mailto:${ABOUT.email}"><u>${ABOUT.email}</u></a></p>
   </section>`;
 }
