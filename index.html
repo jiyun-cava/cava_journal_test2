@@ -113,12 +113,12 @@ body.split .left .cards{grid-template-columns:1fr}
 .pin img{width:100%;height:auto;max-height:calc(var(--ph,600px) - 120px);object-fit:contain;object-position:left center}
 .pin.multi img{max-height:none}
 /* writer box at the end of an entry, and the writer panel that takes the image column */
-.wbox{width:auto;min-width:180px;align-self:flex-start}
+.wbox{width:auto;min-width:180px;align-self:flex-start;background:var(--paper)}
 .wbox:hover,.wbox[aria-expanded="true"]{background:var(--ink);color:var(--paper)}
 .sig{width:150px;height:auto;align-self:flex-start}
 .wpanel{display:grid;gap:var(--u);align-content:start;width:100%}
 .wpanel .rows a{grid-template-columns:auto minmax(0,1fr) auto}
-.wopen .stage{align-items:flex-end!important}
+
 .pin figcaption{font-size:var(--sm);line-height:1.5;margin-top:6px}
 .v2 .body figcaption,.v2 .body .cap,.v3 .body figcaption,.v3 .body .cap,.v4 .body figcaption,.v4 .body .cap{display:none}
 .v2 .body img{height:0;margin:0;visibility:hidden}
@@ -258,16 +258,14 @@ async function entry(n){
     ${e.cover?`<img class="cover" src="${e.cover}" alt="">`:''}
     <div class="reader"><div class="body" id="body"><p class="sm muted">Loading…</p></div>
       <div class="stage" id="stage"></div></div>
-    <button class="box wbox sm" id="wbtn" aria-expanded="false"><span>${esc(e.who)}</span><span>+</span></button>
     ${SIG[e.who]?`<img class="sig" src="${SIG[e.who]}" alt="${esc(e.who)} signature">`:''}
-    <div id="winline"></div>
+    <a class="box wbox sm" href="#w-${pad(e.n)}"><span>${esc(e.who)}</span><span>+</span></a>
     <hr class="rule">
     <p class="sm">Read more ${label}</p>
     <div class="grid2 cards">${rel.map(card).join('')}</div>
   </article>`;
   writerOpen=false;
   $('vbtn').addEventListener('click',()=>{view=view%4+1;applyView();});
-  $('wbtn').addEventListener('click',toggleWriter);
   $('xbtn').addEventListener('click',closeEntry);
   applyView();
   R.scrollTop=0; if(!wide()) window.scrollTo(0,0);
@@ -290,26 +288,28 @@ function closeEntry(){
   if(location.hash==='#home'||!location.hash) route(); else location.hash='#home';
 }
 const SIG={'정우영':'sig/jungwooyoung.png'};
-function toggleWriter(){
-  writerOpen=!writerOpen;
-  const e=P[current-1], btn=$('wbtn');
-  btn.setAttribute('aria-expanded',writerOpen); btn.lastElementChild.textContent=writerOpen?'×':'+';
-  $('winline').innerHTML='';
-  applyView();
-  if(!writerOpen) return;
-  const list=P.filter(x=>x.who===e.who);
-  const html=`<div class="wpanel"><h2 class="lg"><span class="who">${esc(e.who)}</span></h2>
-    ${e.bio?`<p>${esc(e.bio)}</p>`:''}${e.ig?`<p class="sm"><a href="https://www.instagram.com/${e.ig}/"><u>Instagram @${e.ig}</u></a></p>`:''}
-    <ul class="rows">${list.map(x=>`<li><a href="#e-${pad(x.n)}"><span class="sm">No.${x.no}</span><span>${esc(x.t)}</span><span class="sm">${x.form}</span></a></li>`).join('')}</ul></div>`;
-  if(wide()){ $('stage').innerHTML=html; $('stage').scrollTop=0; $('wbtn').scrollIntoView({block:'center'}); }
-  else $('winline').innerHTML=html;
+/* writer page: replaces the open entry in the right pane */
+function writer(n){
+  const e=P[n-1]; if(!e) return;
+  const list=P.filter(x=>x.who===e.who), src=list.find(x=>x.bio)||e, ig=(list.find(x=>x.ig)||e).ig;
+  writerOpen=true; document.body.classList.remove('split');
+  R.innerHTML=`<article class="entry writer">
+    <h1 class="lg">${esc(e.who)}</h1>
+    <div class="meta sm"><span class="chips"><a class="chip back" href="#home">All entries</a><a class="chip" href="#e-${pad(e.n)}" aria-label="Back to the entry" title="Back to the entry">&lt;</a><button class="chip" id="xbtn" aria-label="Close" title="Close">X</button></span></div>
+    ${src.bio?`<p>${esc(src.bio)}</p>`:''}
+    ${ig?`<p class="sm"><a href="https://www.instagram.com/${ig}/"><u>Instagram @${ig}</u></a></p>`:''}
+    <hr class="rule">
+    <p class="sm">Written by ${esc(e.who)}</p>
+    <div class="grid2 cards">${list.map(card).join('')}</div>
+  </article>`;
+  $('xbtn').addEventListener('click',closeEntry);
+  R.scrollTop=0; if(!wide()) window.scrollTo(0,0);
 }
 const VIEWS=['Inline','Split','Large text','Text only'];
 const MORE={'Essay':'essays','Diary':'diaries','Field notes':'field notes','Critique':'critiques','Travelogue':'travelogues','Backstory':'backstories','Letter':'letters'};
 function applyView(){
   const a=R.querySelector('.entry'); if(!a) return;
-  const eff=wide()?(writerOpen?2:view):(view===2?1:view);
-  a.classList.toggle('wopen',writerOpen&&wide());
+  const eff=(view===2&&!wide())?1:view;
   document.body.classList.toggle('split',eff===2);
   a.classList.remove('v1','v2','v3','v4'); a.classList.add('v'+eff);
   $('vbtn').textContent='View '+pad(view)+' · '+VIEWS[view-1];
@@ -366,11 +366,13 @@ if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>layoutSta
 window.addEventListener('resize',applyView);
 function route(){
   const h=location.hash.slice(1)||'home';
-  const m=h.match(/^e-(\d+)$/);
+  const w=h.match(/^w-(\d+)$/);
+  const m=h.match(/^e-(\d+)$/)||w;
   if(m) closed=false;
   document.body.classList.toggle('reading',!!m);
   document.body.classList.toggle('closed',closed);
-  if(m){ entry(+m[1]); if(!leftView) home(); else if(leftView==='home') draw(); }
+  if(w){ writer(+w[1]); if(!leftView) home(); }
+  else if(m){ entry(+m[1]); if(!leftView) home(); else if(leftView==='home') draw(); }
   else{
     if(h==='writers') writers(); else if(h==='about') about(); else home();
     if(!current&&!closed) entry(1);
