@@ -39,7 +39,8 @@ h1,h2,h3,p{margin:0;font-weight:400}
 
 /* header: logo and search float at the top, no bar */
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--u);padding:var(--u)}
-.top img{width:clamp(64px,7vw,96px);height:auto}
+.top a{display:block;width:clamp(64px,7vw,96px);aspect-ratio:450/278}
+.top img{width:90%;height:auto}
 .search{width:clamp(140px,20vw,260px)}
 .search input{width:100%;border:0;border-bottom:1px solid var(--ink);border-radius:0;outline:0;background:transparent;font:inherit;font-size:14px;line-height:1.4;color:var(--ink);padding:6px 0;-webkit-appearance:none;appearance:none}
 .search input::placeholder{color:var(--ink);opacity:1}
@@ -58,7 +59,7 @@ h1,h2,h3,p{margin:0;font-weight:400}
 
 .card{border:1px solid var(--ink);padding:var(--u);display:flex;flex-direction:column;gap:var(--u);transition:background-color .12s;min-width:0}
 .card:hover,.card[aria-current="true"]{background:var(--hi)}
-.card .meta{display:flex;justify-content:space-between;gap:8px}
+.card .meta{display:block}
 .card img{width:100%;aspect-ratio:4/3;object-fit:cover;margin-top:auto}
 
 .rows{list-style:none;margin:0;padding:0;display:grid;gap:var(--u)}
@@ -66,12 +67,18 @@ h1,h2,h3,p{margin:0;font-weight:400}
 .rows a:hover{background:var(--hi)}
 
 /* bottom nav: boxes float over the index, no bar behind them */
-.dock{position:sticky;bottom:0;padding:var(--u) 0;margin-top:auto;z-index:5}
+.dock{position:sticky;bottom:0;padding:var(--u) 0;margin-top:auto;z-index:5;display:grid;gap:var(--u)}
+.grid4[hidden]{display:none}
+.box[aria-expanded="true"]{background:var(--hi)}
 
 /* entry */
 .entry{display:flex;flex-direction:column;gap:var(--u);max-width:760px}
-.entry .meta{display:flex;justify-content:space-between;gap:var(--u)}
-.body{line-height:1.8;overflow-wrap:anywhere}
+.entry .meta{display:flex;justify-content:space-between;align-items:center;gap:var(--u);flex-wrap:wrap}
+.chips{display:flex;gap:8px}
+.chip{display:inline-flex;align-items:center;justify-content:center;min-width:24px;min-height:24px;padding:4px 8px;background:var(--hi)}
+.chip:hover{outline:1px solid var(--ink);outline-offset:-1px}
+.rule{border:0;border-top:1px solid var(--ink);margin:var(--u) 0 0;width:100%}
+.body{font-size:calc(var(--md)*.9);line-height:1.62;overflow-wrap:anywhere}
 .body p{margin:0 0 1.1em}
 .body img{margin:var(--u) 0;height:auto}
 .body h3,.body h4,.body h6{font-size:var(--md);font-weight:500;margin:1.8em 0 .5em}
@@ -84,6 +91,18 @@ h1,h2,h3,p{margin:0;font-weight:400}
 .tablewrap{overflow-x:auto}
 .body table{border-collapse:collapse}
 .body td{border:1px solid var(--ink);padding:6px 8px;vertical-align:top}
+.stage{display:none}
+/* split view: the index narrows to one column so text and image each get a third of the window */
+body.split .app{grid-template-columns:1fr 2fr}
+body.split .cards,body.split .dock .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.split .left .cards{grid-template-columns:1fr}
+.v2,.v3{max-width:none}
+.v2 .reader{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--u);align-items:start}
+.v2 .stage{display:block;position:relative}
+.v2 .stage img{position:absolute;left:0;width:100%;height:auto}
+.v2 .body img{height:0;margin:0;visibility:hidden}
+.v2 .cover,.v3 .cover,.v4 .cover,.v3 .body img,.v4 .body img,.v3 .body figure,.v4 .body figure{display:none}
+.v3 .body{font-size:var(--lg);line-height:1.5;max-width:26em;margin:0 auto;text-align:center}
 .about{display:grid;gap:var(--u);max-width:62ch}
 .about a:hover{background:var(--hi)}
 .back{display:none}
@@ -94,11 +113,12 @@ h1,h2,h3,p{margin:0;font-weight:400}
   .app{display:block}
   .pane{overflow:visible}
   body.reading .left,body:not(.reading) .right{display:none}
-  .back{display:flex}
+  .back{display:inline-flex}
   .dock{position:fixed;left:var(--u);right:var(--u);bottom:0}
   .pane.left{padding-bottom:72px}
   .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
   .dock .grid4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .dock #panel{grid-template-columns:repeat(2,minmax(0,1fr))}
   .rows a{grid-template-columns:1fr auto}
   .rows a span:first-child{grid-column:1/-1}
 }
@@ -119,11 +139,12 @@ h1,h2,h3,p{margin:0;font-weight:400}
   <section class="pane left" id="left" aria-label="Index">
     <div id="lview" style="display:flex;flex-direction:column;gap:var(--u)"><p class="sm muted">Loading entries…</p></div>
     <nav class="dock" aria-label="Sections">
+      <div class="grid4 sm" id="panel" hidden></div>
       <div class="grid4 sm">
-        <a class="box" href="#home" data-r="home"><span>Journal</span></a>
+        <button class="box" id="t-forms" data-p="forms" aria-expanded="false" aria-controls="panel"><span>Journal</span><span>+</span></button>
+        <button class="box" id="t-sort" data-p="sort" aria-expanded="false" aria-controls="panel"><span>Sorting</span><span>+</span></button>
         <a class="box" href="#writers" data-r="writers"><span>Writers</span></a>
         <a class="box" href="#about" data-r="about"><span>About</span></a>
-        <a class="box" href="https://instagram.com/cava.life"><span>Instagram</span><span>↗</span></a>
       </div>
     </nav>
   </section>
@@ -144,30 +165,50 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pad=n=>String(n).padStart(2,'0');
 const wide=()=>matchMedia('(min-width:900px)').matches;
-let P=[],forms=[],active='All',query='',current=0,leftView='';
+let P=[],forms=[],active='All',query='',current=0,leftView='',panel='',sort='Newest',shuffled=[];
+const SORTS=['Newest','Oldest','가나다','Shuffle'];
 const L=$('lview'),R=$('right');
 
 const card=e=>`<a class="card" href="#e-${pad(e.n)}" ${e.n===current?'aria-current="true"':''}>
   <h3 class="lg">${esc(e.who)}<br>${esc(e.t)}</h3>
-  <div class="meta sm"><span>${pad(e.n)} · ${e.d}</span><span>${e.form}</span></div>
+  <div class="meta sm">${e.no} · ${e.d} · ${e.form}</div>
   <img src="${e.thumb}" alt="" loading="lazy"></a>`;
 const row=e=>`<li><a href="#e-${pad(e.n)}"><span>${esc(e.who)}</span><span>${esc(e.t)}</span><span class="sm">${e.form}</span></a></li>`;
 
 function home(){
   leftView='home';
-  L.innerHTML=`<div class="band"><span>${ABOUT.band}</span></div>
-    <div class="grid4 sm" id="filters" role="group" aria-label="Filter by form"></div>
-    <div class="grid2 cards" id="cards"></div>`;
-  $('filters').addEventListener('click',ev=>{const b=ev.target.closest('button');if(b){active=b.dataset.k;draw();}});
+  L.innerHTML=`<div class="grid2 cards" id="cards"></div>`;
   draw();
 }
 function draw(){
   if(leftView!=='home') return;
-  $('filters').innerHTML=['All',...forms].map(k=>`<button class="box" aria-pressed="${k===active}" data-k="${k}"><span>${k}</span><span>${k==='All'?P.length:P.filter(e=>e.form===k).length}</span></button>`).join('');
   const q=query.toLowerCase();
-  const list=P.filter(e=>(active==='All'||e.form===active)&&(!q||[e.who,e.t,e.form].join(' ').toLowerCase().includes(q)));
+  let base=P;
+  if(sort==='Oldest') base=[...P].reverse();
+  else if(sort==='가나다') base=[...P].sort((a,b)=>a.who.localeCompare(b.who,'ko')||a.t.localeCompare(b.t,'ko'));
+  else if(sort==='Shuffle') base=shuffled;
+  const list=base.filter(e=>(active==='All'||e.form===active)&&(!q||[e.who,e.t,e.form].join(' ').toLowerCase().includes(q)));
   $('cards').innerHTML=list.length?list.map(card).join(''):`<p style="grid-column:1/-1">No entry matches. Try a writer's name, or clear the search.</p>`;
 }
+function drawPanel(){
+  const el=$('panel'); el.hidden=!panel;
+  if(panel==='forms') el.innerHTML=['All',...forms].map(k=>`<button class="box" aria-pressed="${k===active}" data-k="${k}"><span>${k}</span><span>${k==='All'?P.length:P.filter(e=>e.form===k).length}</span></button>`).join('');
+  if(panel==='sort') el.innerHTML=SORTS.map(k=>`<button class="box" aria-pressed="${k===sort}" data-s="${k}"><span>${k}</span></button>`).join('');
+  el.setAttribute('aria-label',panel==='sort'?'Sort entries':'Filter by form');
+  document.querySelectorAll('.dock button[data-p]').forEach(b=>{const on=b.dataset.p===panel;b.setAttribute('aria-expanded',on);b.lastElementChild.textContent=on?'×':'+';});
+}
+document.querySelectorAll('.dock button[data-p]').forEach(b=>b.addEventListener('click',()=>{
+  const away=leftView!=='home'||document.body.classList.contains('reading')&&!wide();
+  panel=(!away&&panel===b.dataset.p)?'':b.dataset.p;
+  if(away) location.hash='#home';
+  drawPanel();
+}));
+$('panel').addEventListener('click',ev=>{
+  const b=ev.target.closest('button'); if(!b) return;
+  if(b.dataset.k) active=b.dataset.k;
+  if(b.dataset.s){ sort=b.dataset.s; if(sort==='Shuffle'){ shuffled=[...P]; for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];} } }
+  draw(); drawPanel(); $('left').scrollTop=0;
+});
 function writers(){
   leftView='writers';
   const by={}; P.forEach(e=>(by[e.who]=by[e.who]||[]).push(e));
@@ -179,24 +220,28 @@ function about(){
   leftView='about';
   L.innerHTML=`<div class="band"><span>About CAVA LIFE</span></div>
   <section class="about"><p class="lg">${ABOUT.first}</p><p>${ABOUT.lede}</p>${ABOUT.paras.map(p=>`<p>${p}</p>`).join('')}
-    <p class="sm muted" style="margin-top:var(--u)">Contact</p>
-    <p>Instagram <a href="https://instagram.com/${ABOUT.ig}"><u>@${ABOUT.ig}</u></a><br>Email <a href="mailto:${ABOUT.email}"><u>${ABOUT.email}</u></a></p>
+    <p class="sm" style="margin-top:var(--u)"><a href="https://instagram.com/${ABOUT.ig}"><u>Instagram @${ABOUT.ig}</u></a><br><a href="mailto:${ABOUT.email}"><u>${ABOUT.email}</u></a></p>
   </section>`;
 }
 async function entry(n){
   const e=P[n-1]; if(!e) return;
   current=n;
   const prev=P[n-2], next=P[n];
-  const same=P.filter(x=>x.who===e.who&&x!==e);
+    let rel=P.filter(x=>x.form===e.form&&x!==e).slice(0,4), label=MORE[e.form];
+  if(!rel.length){ rel=P.filter(x=>x!==e).slice(0,4); label='entries'; }
   R.innerHTML=`<article class="entry">
-    <a class="band back" href="#home"><span>← All entries</span></a>
     <h1 class="lg">${esc(e.who)}<br>${esc(e.t)}</h1>
-    <div class="meta sm"><span>${pad(e.n)} · ${e.d}</span><span>${e.form}</span></div>
-    <div class="band"><span>${prev?`<a href="#e-${pad(prev.n)}">← Newer</a>`:''}</span><span>${next?`<a href="#e-${pad(next.n)}">Older →</a>`:''}</span></div>
-    ${e.cover?`<img src="${e.cover}" alt="">`:''}
-    <div class="body" id="body"><p class="sm muted">Loading…</p></div>
-    ${same.length?`<div class="band"><span>More by ${esc(e.who)}</span></div><ul class="rows">${same.map(row).join('')}</ul>`:''}
+    <div class="meta sm"><span>${e.no} · ${e.d} · ${e.form}</span>
+      <span class="chips"><a class="chip back" href="#home">All entries</a><button class="chip" id="vbtn" title="Change how this entry is laid out"></button>${prev?`<a class="chip" href="#e-${pad(prev.n)}" aria-label="Newer entry">&lt;</a>`:''}${next?`<a class="chip" href="#e-${pad(next.n)}" aria-label="Older entry">&gt;</a>`:''}</span></div>
+    ${e.cover?`<img class="cover" src="${e.cover}" alt="">`:''}
+    <div class="reader"><div class="body" id="body"><p class="sm muted">Loading…</p></div>
+      <div class="stage" id="stage"></div></div>
+    <hr class="rule">
+    <p class="sm">Read more ${label}</p>
+    <div class="grid2 cards">${rel.map(card).join('')}</div>
   </article>`;
+  $('vbtn').addEventListener('click',()=>{view=view%4+1;applyView();});
+  applyView();
   R.scrollTop=0; if(!wide()) window.scrollTo(0,0);
   try{
     const j=await (await fetch('a/'+pad(n)+'.json')).json();
@@ -204,10 +249,42 @@ async function entry(n){
     const b=$('body'); b.innerHTML=j.html;
     b.querySelectorAll('p').forEach(x=>{if(!x.textContent.trim()&&!x.querySelector('img'))x.remove();});
     b.querySelectorAll('table').forEach(t=>{const w=document.createElement('div');w.className='tablewrap';t.replaceWith(w);w.appendChild(t);});
+    buildStage();
   }catch(err){
     $('body').innerHTML=`<p>This entry's text didn't load. Reload the page, or read it on <a href="${esc(e.src)}">ca-va.life</a>.</p>`;
   }
 }
+/* entry views: 01 images inline, 02 text left with the current image pinned right, 03 large centered text, 04 text only */
+let view=1;
+const VIEWS=['Inline','Split','Large text','Text only'];
+const MORE={'Essay':'essays','Diary':'diaries','Field notes':'field notes','Critique':'critiques','Travelogue':'travelogues','Backstory':'backstories','Letter':'letters'};
+function applyView(){
+  const a=R.querySelector('.entry'); if(!a) return;
+  const eff=(view===2&&!wide())?1:view;
+  document.body.classList.toggle('split',eff===2);
+  a.classList.remove('v1','v2','v3','v4'); a.classList.add('v'+eff);
+  $('vbtn').textContent='View '+pad(view)+' · '+VIEWS[view-1];
+  layoutStage();
+}
+/* split view: every image sits in the right column level with its place in the text and scrolls with it */
+function buildStage(){
+  const st=$('stage'), b=$('body'); if(!st||!b) return;
+  st.innerHTML='';
+  const add=(src,mark)=>{const i=new Image();i.alt='';i.src=src;i._mark=mark;i.addEventListener('load',layoutStage);st.appendChild(i);};
+  if(P[current-1].cover) add(P[current-1].cover,null);
+  b.querySelectorAll('img').forEach(m=>add(m.getAttribute('src'),m));
+  layoutStage();
+}
+function layoutStage(){
+  const st=$('stage'), b=$('body'); if(!st||!b||!R.querySelector('.entry.v2')) return;
+  const top=b.getBoundingClientRect().top; let y=0;
+  st.querySelectorAll('img').forEach(i=>{
+    const want=i._mark?i._mark.getBoundingClientRect().top-top:0;
+    y=Math.max(y,want); i.style.top=y+'px'; y+=i.offsetHeight+12;
+  });
+  st.style.minHeight=y+'px';
+}
+window.addEventListener('resize',applyView);
 function route(){
   const h=location.hash.slice(1)||'home';
   const m=h.match(/^e-(\d+)$/);
@@ -220,6 +297,7 @@ function route(){
   }
   const on=m?leftView:h;
   document.querySelectorAll('.dock a[data-r]').forEach(a=>a.dataset.r===on?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
+  if(on!=='home'&&panel){ panel=''; drawPanel(); }
 }
 $('q').addEventListener('input',()=>{
   query=$('q').value.trim();
