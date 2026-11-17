@@ -237,8 +237,8 @@ $('panel').addEventListener('click',ev=>{
   if(b.dataset.s){ sort=b.dataset.s; if(sort==='Shuffle'){ shuffled=[...P]; for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];} } }
   draw(); drawPanel(); $('left').scrollTop=0;
 });
-/* hover color runs from the highlight green at the top of the list to fluorescent yellow at the bottom */
-const mix=t=>{const a=[0x39,0xff,0x14], b=[0xf0,0xff,0x00]; return 'rgb('+a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(',')+')';};
+/* hover color runs from the key yellow at the top of the list to green at the bottom */
+const mix=t=>{const a=[0xf0,0xff,0x00], b=[0x39,0xff,0x14]; return 'rgb('+a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(',')+')';};
 function writers(){
   leftView='writers';
   const by={}; P.forEach(e=>(by[e.who]=by[e.who]||[]).push(e));
