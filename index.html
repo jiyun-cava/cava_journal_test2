@@ -105,10 +105,16 @@ body.split .left .cards{grid-template-columns:1fr}
 .v2 .reader{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--u);align-items:start}
 .v2 .stage{display:flex;align-items:center;position:sticky;top:0;height:var(--ph,80vh);overflow:clip}
 .pin{display:grid;gap:var(--u);width:100%;will-change:transform}
-.pin.multi{grid-template-columns:1fr 1fr}
 .pin figure{margin:0;min-width:0}
 .pin img{width:100%;height:auto;max-height:calc(var(--ph,600px) - 120px);object-fit:contain;object-position:left center}
-.pin.multi img{max-height:calc((var(--ph,600px) - 160px)/2)}
+.pin.multi img{max-height:none}
+/* writer box at the end of an entry, and the writer panel that takes the image column */
+.wbox{width:auto;min-width:180px;align-self:flex-start}
+.wbox:hover,.wbox[aria-expanded="true"]{background:var(--ink);color:var(--paper)}
+.sig{width:150px;height:auto;align-self:flex-start}
+.wpanel{display:grid;gap:var(--u);align-content:start;width:100%}
+.wpanel .rows a{grid-template-columns:auto minmax(0,1fr) auto}
+.wopen .stage{align-items:flex-end!important}
 .pin figcaption{font-size:var(--sm);line-height:1.5;margin-top:6px}
 .v2 .body figcaption,.v2 .body .cap,.v3 .body figcaption,.v3 .body .cap,.v4 .body figcaption,.v4 .body .cap{display:none}
 .v2 .body img{height:0;margin:0;visibility:hidden}
@@ -124,7 +130,8 @@ body.split .left .cards{grid-template-columns:1fr}
   .app{display:block}
   .pane{overflow:visible}
   body.reading .left,body:not(.reading) .right{display:none}
-  .back{display:inline-flex}
+  .back{display:inline-flex;margin-right:auto}
+  .entry .meta .chips{width:100%;margin-left:0}
   .dock{position:fixed;left:var(--u);right:var(--u);bottom:0}
   .pane.left{padding-bottom:72px}
   .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -247,11 +254,16 @@ async function entry(n){
     ${e.cover?`<img class="cover" src="${e.cover}" alt="">`:''}
     <div class="reader"><div class="body" id="body"><p class="sm muted">Loading…</p></div>
       <div class="stage" id="stage"></div></div>
+    <button class="box wbox sm" id="wbtn" aria-expanded="false"><span>${esc(e.who)}</span><span>+</span></button>
+    ${SIG[e.who]?`<img class="sig" src="${SIG[e.who]}" alt="${esc(e.who)} signature">`:''}
+    <div id="winline"></div>
     <hr class="rule">
     <p class="sm">Read more ${label}</p>
     <div class="grid2 cards">${rel.map(card).join('')}</div>
   </article>`;
+  writerOpen=false;
   $('vbtn').addEventListener('click',()=>{view=view%4+1;applyView();});
+  $('wbtn').addEventListener('click',toggleWriter);
   applyView();
   R.scrollTop=0; if(!wide()) window.scrollTo(0,0);
   try{
@@ -266,12 +278,28 @@ async function entry(n){
   }
 }
 /* entry views: 01 images inline, 02 text left with the current image pinned right, 03 large centered text, 04 text only */
-let view=1;
+let view=1, writerOpen=false;
+const SIG={'정우영':'sig/jungwooyoung.png'};
+function toggleWriter(){
+  writerOpen=!writerOpen;
+  const e=P[current-1], btn=$('wbtn');
+  btn.setAttribute('aria-expanded',writerOpen); btn.lastElementChild.textContent=writerOpen?'×':'+';
+  $('winline').innerHTML='';
+  applyView();
+  if(!writerOpen) return;
+  const list=P.filter(x=>x.who===e.who);
+  const html=`<div class="wpanel"><h2 class="lg"><span class="who">${esc(e.who)}</span></h2>
+    ${e.bio?`<p>${esc(e.bio)}</p>`:''}${e.ig?`<p class="sm"><a href="https://www.instagram.com/${e.ig}/"><u>Instagram @${e.ig}</u></a></p>`:''}
+    <ul class="rows">${list.map(x=>`<li><a href="#e-${pad(x.n)}"><span class="sm">No.${x.no}</span><span>${esc(x.t)}</span><span class="sm">${x.form}</span></a></li>`).join('')}</ul></div>`;
+  if(wide()){ $('stage').innerHTML=html; $('stage').scrollTop=0; $('wbtn').scrollIntoView({block:'center'}); }
+  else $('winline').innerHTML=html;
+}
 const VIEWS=['Inline','Split','Large text','Text only'];
 const MORE={'Essay':'essays','Diary':'diaries','Field notes':'field notes','Critique':'critiques','Travelogue':'travelogues','Backstory':'backstories','Letter':'letters'};
 function applyView(){
   const a=R.querySelector('.entry'); if(!a) return;
-  const eff=(view===2&&!wide())?1:view;
+  const eff=wide()?(writerOpen?2:view):(view===2?1:view);
+  a.classList.toggle('wopen',writerOpen&&wide());
   document.body.classList.toggle('split',eff===2);
   a.classList.remove('v1','v2','v3','v4'); a.classList.add('v'+eff);
   $('vbtn').textContent='View '+pad(view)+' · '+VIEWS[view-1];
@@ -289,7 +317,7 @@ function buildStage(){
 let groups=[],shown=-1;
 const MIN_GAP=320, EXIT=220;   /* images closer than MIN_GAP share the stage; an image drifts up over its last EXIT px */
 function layoutStage(){
-  const st=$('stage'), b=$('body'); if(!st||!b||!R.querySelector('.entry.v2')) return;
+  const st=$('stage'), b=$('body'); if(!st||!b||writerOpen||!R.querySelector('.entry.v2')) return;
   const top=b.getBoundingClientRect().top;
   st.style.setProperty('--ph',R.clientHeight+'px');
   groups=[{y:-1e6,items:[]}];
@@ -305,16 +333,22 @@ function layoutStage(){
   shown=-1; showPins();
 }
 function showPins(){
-  const st=$('stage'), b=$('body'); if(!st||!b||!groups.length||!R.querySelector('.entry.v2')) return;
+  const st=$('stage'), b=$('body'); if(!st||!b||writerOpen||!groups.length||!R.querySelector('.entry.v2')) return;
   const r=R.getBoundingClientRect(), line=r.top+r.height*.5-b.getBoundingClientRect().top;   /* middle of the pane, in body coordinates */
   let cur=0; groups.forEach((g,i)=>{if(g.y<=line) cur=i;});
   if(cur!==shown){
     const g=groups[cur]; shown=cur;
     st.innerHTML=`<div class="pin${g.items.length>1?' multi':''}">${g.items.map(x=>`<figure><img src="${x.src}" alt="">${x.cap?`<figcaption>${esc(x.cap)}</figcaption>`:''}</figure>`).join('')}</div>`;
+    st.querySelectorAll('img').forEach(i=>i.addEventListener('load',showPins));
   }
   const next=groups[cur+1], pin=st.firstElementChild;
-  let shift=0;
-  if(next){ const span=next.y-Math.max(groups[cur].y,-EXIT*4), ex=Math.min(EXIT,span*.4), d=next.y-line; if(d<ex) shift=-(ex-d); }
+  let shift=0, ex=0;
+  const startY=cur?groups[cur].y:r.height*.5;
+  if(next){ const span=next.y-Math.max(groups[cur].y,-EXIT*4); ex=Math.min(EXIT,span*.4); const d=next.y-line; if(d<ex) shift=-(ex-d); }
+  /* a stack taller than the pane pans from its top to its bottom while its section is read */
+  const H=pin?pin.offsetHeight:0, tall=H>r.height-8;
+  st.style.alignItems=tall?'flex-start':'center';
+  if(tall){ const end=(next?next.y-ex:b.offsetHeight), p=Math.min(1,Math.max(0,(line-startY)/Math.max(1,end-startY))); shift-=(H-r.height+12)*p; }
   if(pin) pin.style.transform=shift?`translateY(${shift}px)`:'';
 }
 R.addEventListener('scroll',showPins,{passive:true});
