@@ -327,7 +327,7 @@ function product(n){
       <span class="chips sm">${prev?`<a class="chip plain" href="#p-${prev.n}" aria-label="Previous item">&lt;</a>`:''}${next?`<a class="chip plain" href="#p-${next.n}" aria-label="Next item">&gt;</a>`:''}<button class="chip plain" id="xbtn" aria-label="Close" title="Close">X</button></span></div>
     <div class="meta sm"><span>${won(p.price)}</span><span class="chips"><a class="chip back" href="#shop">All items</a></span></div>
     <img class="shot" id="shot" src="${p.img}" alt="${esc(p.name)}">
-    ${p.desc.map(t=>`<p>${esc(t)}</p>`).join('')}
+    ${p.desc.map(t=>`<p class="sm">${esc(t)}</p>`).join('')}
     <div class="opts sm">
       ${p.colors.length?`<div class="opt"><span>Color</span><div class="optrow" id="o-color">${p.colors.map(c=>`<button class="box" data-v="${c.k}" aria-pressed="${c.k===sel.color}">${c.k}</button>`).join('')}</div></div>`:''}
       ${p.sizes.length?`<div class="opt"><span>Size</span><div class="optrow" id="o-size">${p.sizes.map(z=>`<button class="box" data-v="${z}" aria-pressed="false">${z}</button>`).join('')}</div></div>`:''}
