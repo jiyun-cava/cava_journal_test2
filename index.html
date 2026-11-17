@@ -110,7 +110,17 @@ h1,h2,h3,p{margin:0;font-weight:400}
 /* entry closed: the index takes the whole window */
 body.closed .app{grid-template-columns:1fr}
 body.closed .right{display:none}
-body.closed .left .cards{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+/* the full index has exactly twice the columns of the split index, and the inner gutters are halved,
+   so a card is the same width in both states and the left columns do not move when an entry opens */
+@media (min-width:900px){
+  body.closed .left .cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+  body:not(.closed) .pane.left{padding-right:calc(var(--u)/2)}
+  body:not(.closed) .pane.right{padding-left:calc(var(--u)/2)}
+}
+@media (min-width:1800px){
+  .app .cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+  body.closed .left .cards{grid-template-columns:repeat(6,minmax(0,1fr))}
+}
 /* split view: the index narrows to one column so text and image each get a third of the window */
 body.split .app{grid-template-columns:1fr 2fr}
 body.split .cards,body.split .dock .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -392,7 +402,7 @@ function route(){
   document.body.classList.toggle('reading',!!m);
   document.body.classList.toggle('closed',closed);
   if(w){ writer(+w[1]); if(!leftView) home(); }
-  else if(m){ entry(+m[1]); if(!leftView) home(); else if(leftView==='home') draw(); }
+  else if(m){ entry(+m[1]); if(!leftView) home(); else if(leftView==='home') draw(); keepAnchor(); }
   else{
     if(h==='writers') writers(); else if(h==='about') about(); else home();
     draw();
@@ -418,6 +428,13 @@ $('logo').addEventListener('click',ev=>{
 /* show the entrance only when arriving at the site itself, not on a link straight to an entry or page */
 if(!location.hash){ $('intro').hidden=false; $('intro').focus(); }
 $('intro').addEventListener('click',()=>{ $('intro').hidden=true; });
+let anchor=null;
+$('left').addEventListener('click',ev=>{const c=ev.target.closest('.card'); if(c) anchor={href:c.getAttribute('href'),top:c.getBoundingClientRect().top};});
+function keepAnchor(){
+  if(!anchor||!wide()) return; const c=L.querySelector(`.card[href="${anchor.href}"]`);
+  if(c) $('left').scrollTop+=c.getBoundingClientRect().top-anchor.top;
+  anchor=null;
+}
 window.addEventListener('hashchange',route);
 
 fetch('posts.json').then(r=>r.json()).then(d=>{
