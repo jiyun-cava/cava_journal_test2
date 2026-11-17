@@ -294,7 +294,7 @@ async function entry(n){
   }
 }
 /* entry views: 01 images inline, 02 text left with the current image pinned right, 03 large centered text, 04 text only */
-let view=1, writerOpen=false, closed=false;
+let view=1, writerOpen=false, closed=true;   /* the site opens on the full index; the right pane appears when an entry is opened */
 function closeEntry(){
   closed=true; current=0; writerOpen=false; R.innerHTML='';
   document.body.classList.remove('split');
@@ -390,7 +390,6 @@ function route(){
   else if(m){ entry(+m[1]); if(!leftView) home(); else if(leftView==='home') draw(); }
   else{
     if(h==='writers') writers(); else if(h==='about') about(); else home();
-    if(!current&&!closed) entry(1);
     draw();
     $('left').scrollTop=0; if(!wide()) window.scrollTo(0,0);
   }
@@ -404,10 +403,11 @@ $('q').addEventListener('input',()=>{
   draw();
 });
 $('sform').addEventListener('submit',e=>e.preventDefault());
-/* the logo always returns to the main home: full index on the left, latest entry on the right, filters cleared */
+/* the logo always returns to the main home: the full index grid, filters cleared */
 $('logo').addEventListener('click',ev=>{
   ev.preventDefault();
-  closed=false; current=0; active='All'; sort='Newest'; query=''; $('q').value=''; panel=''; drawPanel();
+  closed=true; current=0; writerOpen=false; R.innerHTML=''; document.body.classList.remove('split');
+  active='All'; sort='Newest'; query=''; $('q').value=''; panel=''; drawPanel();
   if(location.hash==='#home') route(); else location.hash='#home';
 });
 window.addEventListener('hashchange',route);
