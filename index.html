@@ -6,140 +6,133 @@
 <title>CAVA LIFE Journal Index</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* Layout idea: white page, black type, one green band per section; anything you can click turns green on hover. Single light theme by choice. */
+/* Layout idea: full-width white page split in two panes (index left, entry right) on one 12px grid.
+   Three text sizes only. Green appears on bands and on whatever is hovered or selected. Single light theme by choice. */
 :root{
   --paper:#ffffff;
   --ink:#000000;
-  --muted:#6b6b6b;
-  --line:#000000;
+  --muted:#6f6f6f;
   --hi:#39ff14;
-  /* Latin glyphs resolve to Futura (Jost where Futura is not installed); Hangul falls through to the Korean faces */
+  --glass:rgba(255,255,255,.72);
+  --u:12px;            /* the one spacing unit: gutters, gaps, padding */
+  --row:32px;          /* height shared by bands and boxes */
+  --lg:clamp(22px,2.1vw,30px);
+  --md:17px;
+  --sm:12px;
   --font:Futura,"Futura PT","Futura Std",Jost,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
   color-scheme:light;
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
-a{color:inherit}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:var(--md);line-height:1.5;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
-button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}
-:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-.wrap{max-width:1080px;margin:0 auto;padding:16px 16px 120px;display:flex;flex-direction:column;gap:20px}
-.cap{font-size:12px;letter-spacing:.09em;text-transform:uppercase;font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left;text-transform:inherit;letter-spacing:inherit}
+h1,h2,h3,p{margin:0;font-weight:400}
+:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+
+.sm{font-size:var(--sm);letter-spacing:.06em;text-transform:uppercase;line-height:1.3;font-variant-numeric:tabular-nums}
+.lg{font-size:var(--lg);line-height:1.15;font-weight:500;letter-spacing:-.01em;text-wrap:balance}
 .muted{color:var(--muted)}
 
-/* the band: the only filled surface on the page */
-.band{display:flex;align-items:center;gap:12px;width:100%;background:var(--hi);color:var(--ink);padding:8px 12px;min-height:40px;text-decoration:none}
-.band .grow{flex:1;min-width:0}
-.band strong{font-weight:500;font-size:16px;letter-spacing:.04em;text-transform:uppercase}
-.band img{height:26px;width:auto}
-a.band:hover,button.band:hover{outline:1px solid var(--ink);outline-offset:-1px}
+/* header: logo and search float at the top, no bar */
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--u);padding:var(--u)}
+.top img{width:clamp(64px,7vw,96px);height:auto}
+.search{width:clamp(140px,20vw,260px)}
+.search input{width:100%;border:0;border-bottom:1px solid var(--ink);border-radius:0;outline:0;background:transparent;font:inherit;font-size:14px;line-height:1.4;color:var(--ink);padding:6px 0;-webkit-appearance:none;appearance:none}
+.search input::placeholder{color:var(--ink);opacity:1}
+.search input::-webkit-search-decoration,.search input::-webkit-search-cancel-button{-webkit-appearance:none}
 
-/* hover takes the highlight color everywhere else */
-.hov{transition:background-color .12s}
-.hov:hover{background:var(--hi)}
+.app{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr}
+.pane{overflow-y:auto;padding:0 var(--u) var(--u);display:flex;flex-direction:column;gap:var(--u);min-width:0}
+.pane.left{padding-bottom:0}
 
-h1,h2,h3{font-weight:500;margin:0;text-wrap:balance}
-.lead{display:grid;grid-template-columns:1.1fr 1fr;gap:24px;align-items:start;text-decoration:none}
-.lead .pic{border:1px solid var(--line)}
-.lead .pic img{width:100%;aspect-ratio:4/3;object-fit:cover}
-.lead h1{font-size:clamp(30px,4.6vw,54px);line-height:1.1;letter-spacing:-.01em}
-.lead h1 small{display:block;font-size:.5em;font-weight:400;margin-top:.35em;line-height:1.3}
-.lead .txt{display:grid;gap:14px;align-content:start}
-.lead p{margin:0;max-width:52ch}
-.go{display:inline-block;border:1px solid var(--line);padding:6px 14px;justify-self:start}
-.lead:hover .go{background:var(--hi)}
+/* band and box share one height */
+.band{display:flex;align-items:center;justify-content:space-between;gap:var(--u);min-height:var(--row);padding:4px 8px;background:var(--hi);flex:none}
+.box{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:var(--row);padding:4px 8px;border:1px solid var(--ink);background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);width:100%;transition:background-color .12s}
+.box:hover,.box[aria-pressed="true"],.box[aria-current="page"]{background:var(--hi)}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--u)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--u)}
 
-.filters{display:flex;flex-wrap:wrap;gap:6px}
-.filters button{border:1px solid var(--line);padding:5px 11px}
-.filters button[aria-pressed="true"]{background:var(--hi)}
+.card{border:1px solid var(--ink);padding:var(--u);display:flex;flex-direction:column;gap:var(--u);transition:background-color .12s;min-width:0}
+.card:hover,.card[aria-current="true"]{background:var(--hi)}
+.card .meta{display:flex;justify-content:space-between;gap:8px}
+.card img{width:100%;aspect-ratio:4/3;object-fit:cover;margin-top:auto}
 
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}
-.card{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px;display:grid;gap:10px;text-decoration:none;align-content:start}
-.card img{width:100%;aspect-ratio:4/3;object-fit:cover}
-.card .top{display:flex;justify-content:space-between;gap:8px}
-.card h3{font-size:18px;line-height:1.3}
-.card h3 span{display:block;font-weight:400;font-size:15px;margin-top:3px}
+.rows{list-style:none;margin:0;padding:0;display:grid;gap:var(--u)}
+.rows a{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto;gap:var(--u);align-items:baseline;border:1px solid var(--ink);padding:6px 8px;min-height:var(--row);transition:background-color .12s}
+.rows a:hover{background:var(--hi)}
+
+/* bottom nav: boxes float over the index, no bar behind them */
+.dock{position:sticky;bottom:0;padding:var(--u) 0;margin-top:auto;z-index:5}
 
 /* entry */
-.entry{max-width:720px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:20px}
-.entry h1{font-size:clamp(32px,6vw,56px);line-height:1.08;letter-spacing:-.01em}
-.entry h2.sub{font-size:clamp(20px,3vw,26px);font-weight:400;line-height:1.3}
-.meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:8px}
-.body{font-size:17px;line-height:1.85;overflow-wrap:anywhere}
-.body p{margin:0 0 1.2em}
-.body img{margin:1.6em 0;height:auto}
-.body h3,.body h4,.body h6{font-size:19px;font-weight:700;margin:2em 0 .6em}
-.body blockquote{margin:1.4em 0;padding-left:16px;border-left:3px solid var(--hi)}
+.entry{display:flex;flex-direction:column;gap:var(--u);max-width:760px}
+.entry .meta{display:flex;justify-content:space-between;gap:var(--u)}
+.body{line-height:1.8;overflow-wrap:anywhere}
+.body p{margin:0 0 1.1em}
+.body img{margin:var(--u) 0;height:auto}
+.body h3,.body h4,.body h6{font-size:var(--md);font-weight:500;margin:1.8em 0 .5em}
+.body blockquote{margin:1.1em 0;padding-left:var(--u);border-left:3px solid var(--hi)}
 .body a{text-decoration:underline;text-underline-offset:3px}
 .body a:hover{background:var(--hi)}
-.body figure{margin:1.6em 0}
-.body figcaption{font-size:13px;color:var(--muted)}
-.body hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.body figure{margin:var(--u) 0}
+.body figcaption{font-size:var(--sm);color:var(--muted)}
+.body hr{border:0;border-top:1px solid var(--ink);margin:1.8em 0}
 .tablewrap{overflow-x:auto}
 .body table{border-collapse:collapse}
-.body td{border:1px solid var(--line);padding:6px 8px;vertical-align:top}
-.pn{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.pn a{border:1px solid var(--line);padding:10px 12px;text-decoration:none;display:grid;gap:2px;min-width:0}
-.pn a:last-child{text-align:right}
+.body td{border:1px solid var(--ink);padding:6px 8px;vertical-align:top}
+.about{display:grid;gap:var(--u);max-width:62ch}
+.about a:hover{background:var(--hi)}
+.back{display:none}
 
-/* writers and about */
-.rows{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
-.rows li{border-bottom:1px solid var(--line)}
-.rows a{display:grid;grid-template-columns:minmax(110px,220px) 1fr auto;gap:12px;padding:10px 8px;text-decoration:none;align-items:baseline}
-.rows .who{font-weight:500}
-.about{max-width:680px;display:grid;gap:18px}
-.about h1{font-size:clamp(30px,5vw,48px);letter-spacing:.01em}
-.about p{margin:0;font-size:18px;line-height:1.8}
-.about .first{font-size:22px;line-height:1.6;font-weight:500}
-.contact{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:4px}
-.contact a:hover{background:var(--hi)}
-
-/* pinned section dock */
-.dock{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:1px solid var(--line);padding:8px 16px}
-.dock-in{max-width:1080px;margin:0 auto;display:grid;gap:8px}
-.panel{max-height:44vh;overflow:auto;padding:4px 0 8px}
-.panel[hidden]{display:none}
-.panel input{width:100%;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);padding:9px 11px;border-radius:0}
-.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.tabs a,.tabs button{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);padding:7px 11px;text-decoration:none}
-.tabs button,.filters button{text-transform:inherit;letter-spacing:inherit;font-size:inherit}
-.tabs [aria-current="page"],.tabs [aria-expanded="true"]{background:var(--hi)}
-@media (max-width:640px){
-  .lead{grid-template-columns:1fr}
+@media (max-width:899px){
+  html,body{height:auto}
+  body{display:block}
+  .app{display:block}
+  .pane{overflow:visible}
+  body.reading .left,body:not(.reading) .right{display:none}
+  .back{display:flex}
+  .dock{position:fixed;left:var(--u);right:var(--u);bottom:0}
+  .pane.left{padding-bottom:72px}
+  .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dock .grid4{grid-template-columns:repeat(4,minmax(0,1fr))}
   .rows a{grid-template-columns:1fr auto}
-  .rows .who{grid-column:1/-1}
-  .tabs a,.tabs button{padding:7px 8px;font-size:11px}
+  .rows a span:first-child{grid-column:1/-1}
 }
+@media (max-width:520px){.cards.grid2{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header><a class="band" href="#home"><img src="logo.png" alt="CAVA"><strong class="grow">Journal</strong><span class="cap" id="count"></span></a></header>
-  <main id="view"><p class="cap muted">Loading entries…</p></main>
-</div>
+<header class="top">
+  <a href="#home" aria-label="CAVA LIFE home"><img src="logo.png" alt="CAVA" width="450" height="278"></a>
+  <form class="search" role="search" id="sform">
+    <label for="q" style="position:absolute;left:-9999px">Search</label>
+    <input id="q" type="search" placeholder="Search" autocomplete="off" enterkeyhint="search">
+  </form>
+</header>
 
-<nav class="dock" aria-label="Sections">
-  <div class="dock-in">
-    <div class="panel" id="p-search" hidden>
-      <label class="cap" for="q">Search by writer, title or form</label>
-      <input id="q" type="search" autocomplete="off" style="margin:6px 0 8px">
-      <ul class="rows" id="results"></ul>
-    </div>
-    <div class="tabs cap">
-      <a class="hov" href="#home" data-r="home"><span>Journal</span></a>
-      <a class="hov" href="#writers" data-r="writers"><span>Writers</span></a>
-      <button class="hov" id="t-search" aria-expanded="false" aria-controls="p-search"><span>Search</span><span id="s-sign">+</span></button>
-      <a class="hov" href="#about" data-r="about"><span>About</span></a>
-    </div>
-  </div>
-</nav>
+<div class="app">
+  <section class="pane left" id="left" aria-label="Index">
+    <div id="lview" style="display:flex;flex-direction:column;gap:var(--u)"><p class="sm muted">Loading entries…</p></div>
+    <nav class="dock" aria-label="Sections">
+      <div class="grid4 sm">
+        <a class="box" href="#home" data-r="home"><span>Journal</span></a>
+        <a class="box" href="#writers" data-r="writers"><span>Writers</span></a>
+        <a class="box" href="#about" data-r="about"><span>About</span></a>
+        <a class="box" href="https://instagram.com/cava.life"><span>Instagram</span><span>↗</span></a>
+      </div>
+    </nav>
+  </section>
+  <section class="pane right" id="right" aria-label="Entry"></section>
+</div>
 
 <script>
 const ABOUT={
+  band:'카바저널: 문화와 자본, 그 연결을 탐구하는 큐레이션 저널',
   first:'창작자의 생태계를 위한 카바 라이프.',
   lede:'2018년부터 동시대 예술과 문화를 소개해 온 카바 라이프가 2026년 9월 카바저널의 새로운 모습으로 다시 시작했습니다.',
   paras:['카바저널은 문화와 자본, 그 연결을 탐구하는 큐레이션 저널입니다.',
@@ -150,55 +143,64 @@ const ABOUT={
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pad=n=>String(n).padStart(2,'0');
-let P=[],forms=[],active='All';
-const view=$('view');
+const wide=()=>matchMedia('(min-width:900px)').matches;
+let P=[],forms=[],active='All',query='',current=0,leftView='';
+const L=$('lview'),R=$('right');
 
-const card=e=>`<a class="card hov" href="#e-${pad(e.n)}">
-  <div class="top cap"><span>${pad(e.n)}</span><span>${e.d}</span></div>
-  <img src="${e.thumb}" alt="" loading="lazy">
-  <h3>${esc(e.who)}<span>${esc(e.t)}</span></h3>
-  <span class="cap muted">${e.form}</span></a>`;
-const row=e=>`<li><a class="hov" href="#e-${pad(e.n)}"><span class="who">${esc(e.who)}</span><span>${esc(e.t)}</span><span class="cap muted">${e.form}</span></a></li>`;
+const card=e=>`<a class="card" href="#e-${pad(e.n)}" ${e.n===current?'aria-current="true"':''}>
+  <h3 class="lg">${esc(e.who)}<br>${esc(e.t)}</h3>
+  <div class="meta sm"><span>${pad(e.n)} · ${e.d}</span><span>${e.form}</span></div>
+  <img src="${e.thumb}" alt="" loading="lazy"></a>`;
+const row=e=>`<li><a href="#e-${pad(e.n)}"><span>${esc(e.who)}</span><span>${esc(e.t)}</span><span class="sm">${e.form}</span></a></li>`;
 
 function home(){
-  const f=P[0];
-  view.innerHTML=`<div style="display:flex;flex-direction:column;gap:20px">
-  <a class="lead" href="#e-${pad(f.n)}">
-    <div class="pic"><img src="${f.cover}" alt=""></div>
-    <div class="txt"><span class="cap">Latest · ${f.d} · ${f.form}</span>
-      <h1>${esc(f.who)}<small>${esc(f.t)}</small></h1><p>${esc(f.ex)}</p><span class="go cap">Read entry →</span></div>
-  </a>
-  <div class="band" id="all"><strong class="grow">All entries</strong><span class="cap" id="shown"></span></div>
-  <div class="filters cap" id="filters" role="group" aria-label="Filter by form"></div>
-  <div class="cards" id="cards"></div></div>`;
+  leftView='home';
+  L.innerHTML=`<div class="band"><span>${ABOUT.band}</span></div>
+    <div class="grid4 sm" id="filters" role="group" aria-label="Filter by form"></div>
+    <div class="grid2 cards" id="cards"></div>`;
   $('filters').addEventListener('click',ev=>{const b=ev.target.closest('button');if(b){active=b.dataset.k;draw();}});
   draw();
 }
 function draw(){
-  $('filters').innerHTML=['All',...forms].map(k=>`<button class="hov" aria-pressed="${k===active}" data-k="${k}">${k} ${k==='All'?P.length:P.filter(e=>e.form===k).length}</button>`).join('');
-  const list=P.filter(e=>active==='All'||e.form===active);
-  $('shown').textContent=list.length+' of '+P.length;
-  $('cards').innerHTML=list.map(card).join('');
+  if(leftView!=='home') return;
+  $('filters').innerHTML=['All',...forms].map(k=>`<button class="box" aria-pressed="${k===active}" data-k="${k}"><span>${k}</span><span>${k==='All'?P.length:P.filter(e=>e.form===k).length}</span></button>`).join('');
+  const q=query.toLowerCase();
+  const list=P.filter(e=>(active==='All'||e.form===active)&&(!q||[e.who,e.t,e.form].join(' ').toLowerCase().includes(q)));
+  $('cards').innerHTML=list.length?list.map(card).join(''):`<p style="grid-column:1/-1">No entry matches. Try a writer's name, or clear the search.</p>`;
+}
+function writers(){
+  leftView='writers';
+  const by={}; P.forEach(e=>(by[e.who]=by[e.who]||[]).push(e));
+  const names=Object.keys(by).sort((a,b)=>a.localeCompare(b,'ko'));
+  L.innerHTML=`<div class="band"><span>Writers</span><span class="sm">${names.length}</span></div>
+    <ul class="rows">${names.map(n=>by[n].map(row).join('')).join('')}</ul>`;
+}
+function about(){
+  leftView='about';
+  L.innerHTML=`<div class="band"><span>About CAVA LIFE</span></div>
+  <section class="about"><p class="lg">${ABOUT.first}</p><p>${ABOUT.lede}</p>${ABOUT.paras.map(p=>`<p>${p}</p>`).join('')}
+    <p class="sm muted" style="margin-top:var(--u)">Contact</p>
+    <p>Instagram <a href="https://instagram.com/${ABOUT.ig}"><u>@${ABOUT.ig}</u></a><br>Email <a href="mailto:${ABOUT.email}"><u>${ABOUT.email}</u></a></p>
+  </section>`;
 }
 async function entry(n){
-  const e=P[n-1]; if(!e) return home();
+  const e=P[n-1]; if(!e) return;
+  current=n;
   const prev=P[n-2], next=P[n];
   const same=P.filter(x=>x.who===e.who&&x!==e);
-  const more=P.filter(x=>x.form===e.form&&x!==e&&!same.includes(x)).slice(0,4);
-  view.innerHTML=`<article class="entry">
-    <a class="band" href="#home"><strong class="grow">← All entries</strong><span class="cap">${pad(e.n)} / ${P.length}</span></a>
-    <div><h1>${esc(e.who)}</h1><h2 class="sub">${esc(e.t)}</h2></div>
-    <div class="meta cap"><span>${e.d}</span><span>${e.form}</span></div>
+  R.innerHTML=`<article class="entry">
+    <a class="band back" href="#home"><span>← All entries</span></a>
+    <h1 class="lg">${esc(e.who)}<br>${esc(e.t)}</h1>
+    <div class="meta sm"><span>${pad(e.n)} · ${e.d}</span><span>${e.form}</span></div>
+    <div class="band"><span>${prev?`<a href="#e-${pad(prev.n)}">← Newer</a>`:''}</span><span>${next?`<a href="#e-${pad(next.n)}">Older →</a>`:''}</span></div>
     ${e.cover?`<img src="${e.cover}" alt="">`:''}
-    <div class="body" id="body"><p class="cap muted">Loading…</p></div>
-    <div class="pn">${prev?`<a class="hov" href="#e-${pad(prev.n)}"><span class="cap">← Newer</span><span>${esc(prev.who)}</span></a>`:'<span></span>'}
-      ${next?`<a class="hov" href="#e-${pad(next.n)}"><span class="cap">Older →</span><span>${esc(next.who)}</span></a>`:'<span></span>'}</div>
-    ${same.length?`<div class="band"><strong>More by ${esc(e.who)}</strong></div><ul class="rows" style="border-top:0">${same.map(row).join('')}</ul>`:''}
-  </article>
-  ${more.length?`<div style="margin-top:28px;display:grid;gap:14px"><div class="band"><strong class="grow">More ${e.form.toLowerCase()} entries</strong></div><div class="cards">${more.map(card).join('')}</div></div>`:''}`;
+    <div class="body" id="body"><p class="sm muted">Loading…</p></div>
+    ${same.length?`<div class="band"><span>More by ${esc(e.who)}</span></div><ul class="rows">${same.map(row).join('')}</ul>`:''}
+  </article>`;
+  R.scrollTop=0; if(!wide()) window.scrollTo(0,0);
   try{
-    const r=await fetch('a/'+pad(n)+'.json'); const j=await r.json();
-    if(location.hash!=='#e-'+pad(n)) return;
+    const j=await (await fetch('a/'+pad(n)+'.json')).json();
+    if(current!==n) return;
     const b=$('body'); b.innerHTML=j.html;
     b.querySelectorAll('p').forEach(x=>{if(!x.textContent.trim()&&!x.querySelector('img'))x.remove();});
     b.querySelectorAll('table').forEach(t=>{const w=document.createElement('div');w.className='tablewrap';t.replaceWith(w);w.appendChild(t);});
@@ -206,52 +208,30 @@ async function entry(n){
     $('body').innerHTML=`<p>This entry's text didn't load. Reload the page, or read it on <a href="${esc(e.src)}">ca-va.life</a>.</p>`;
   }
 }
-function writers(){
-  const by={}; P.forEach(e=>(by[e.who]=by[e.who]||[]).push(e));
-  const names=Object.keys(by).sort((a,b)=>a.localeCompare(b,'ko'));
-  view.innerHTML=`<div style="display:grid;gap:16px"><div class="band"><strong class="grow">Writers</strong><span class="cap">${names.length}</span></div>
-    <ul class="rows" style="border-top:0">${names.map(n=>by[n].map(row).join('')).join('')}</ul></div>`;
-}
-function about(){
-  view.innerHTML=`<div style="display:grid;gap:20px"><div class="band"><strong>About</strong></div>
-  <section class="about"><h1>ABOUT CAVA LIFE</h1>
-    <p class="first">${ABOUT.first}</p><p>${ABOUT.lede}</p>${ABOUT.paras.map(p=>`<p>${p}</p>`).join('')}
-    <div class="contact"><span class="cap muted">Contact</span>
-      <span>Instagram <a href="https://instagram.com/${ABOUT.ig}">@${ABOUT.ig}</a></span>
-      <span>Email <a href="mailto:${ABOUT.email}">${ABOUT.email}</a></span></div>
-  </section></div>`;
-}
 function route(){
   const h=location.hash.slice(1)||'home';
   const m=h.match(/^e-(\d+)$/);
-  closeSearch();
-  if(m) entry(+m[1]); else if(h==='writers') writers(); else if(h==='about') about(); else home();
-  document.querySelectorAll('.tabs a').forEach(a=>{
-    const on=a.dataset.r===h||(a.dataset.r==='home'&&(m||h==='home'));
-    on?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current');
-  });
-  if(h!=='home'||m) window.scrollTo(0,0);
+  document.body.classList.toggle('reading',!!m);
+  if(m){ entry(+m[1]); if(!leftView) home(); else if(leftView==='home') draw(); }
+  else{
+    if(h==='writers') writers(); else if(h==='about') about(); else home();
+    if(!current) entry(1);
+    $('left').scrollTop=0; if(!wide()) window.scrollTo(0,0);
+  }
+  const on=m?leftView:h;
+  document.querySelectorAll('.dock a[data-r]').forEach(a=>a.dataset.r===on?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
 }
-function closeSearch(){$('p-search').hidden=true;$('t-search').setAttribute('aria-expanded','false');$('s-sign').textContent='+';}
-$('t-search').addEventListener('click',()=>{
-  const open=$('p-search').hidden;
-  if(!open) return closeSearch();
-  $('p-search').hidden=false;$('t-search').setAttribute('aria-expanded','true');$('s-sign').textContent='×';$('q').focus();search();
+$('q').addEventListener('input',()=>{
+  query=$('q').value.trim();
+  if(leftView!=='home'||document.body.classList.contains('reading')&&!wide()) location.hash='#home';
+  draw();
 });
-function search(){
-  const q=$('q').value.trim().toLowerCase();
-  const hit=q?P.filter(e=>[e.who,e.t,e.form].join(' ').toLowerCase().includes(q)):P.slice(0,6);
-  $('results').innerHTML=hit.length?hit.map(row).join(''):'<li style="padding:10px 8px">No entry matches. Try a writer\'s name or a form such as Diary.</li>';
-}
-$('q').addEventListener('input',search);
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSearch();});
+$('sform').addEventListener('submit',e=>e.preventDefault());
 window.addEventListener('hashchange',route);
 
 fetch('posts.json').then(r=>r.json()).then(d=>{
-  P=d; forms=[...new Set(P.map(e=>e.form))];
-  $('count').textContent=P.length+' entries';
-  route();
-}).catch(()=>{view.innerHTML='<p>The entry list did not load. Reload the page to try again.</p>';});
+  P=d; forms=[...new Set(P.map(e=>e.form))]; route();
+}).catch(()=>{L.innerHTML='<p>The entry list did not load. Reload the page to try again.</p>';});
 </script>
 </body>
 </html>
