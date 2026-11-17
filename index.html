@@ -156,7 +156,7 @@ body.split .left .cards{grid-template-columns:1fr}
 </head>
 <body>
 <header class="top">
-  <a href="#home" aria-label="CAVA LIFE home"><img src="logo.png" alt="CAVA" width="450" height="278"></a>
+  <a href="#home" id="logo" aria-label="CAVA LIFE home"><img src="logo.png" alt="CAVA" width="450" height="278"></a>
   <form class="search" role="search" id="sform">
     <label for="q" style="position:absolute;left:-9999px">Search</label>
     <input id="q" type="search" placeholder="Search" autocomplete="off" enterkeyhint="search">
@@ -404,6 +404,12 @@ $('q').addEventListener('input',()=>{
   draw();
 });
 $('sform').addEventListener('submit',e=>e.preventDefault());
+/* the logo always returns to the main home: full index on the left, latest entry on the right, filters cleared */
+$('logo').addEventListener('click',ev=>{
+  ev.preventDefault();
+  closed=false; current=0; active='All'; sort='Newest'; query=''; $('q').value=''; panel=''; drawPanel();
+  if(location.hash==='#home') route(); else location.hash='#home';
+});
 window.addEventListener('hashchange',route);
 
 fetch('posts.json').then(r=>r.json()).then(d=>{
