@@ -81,6 +81,35 @@ h1,h2,h3,p{margin:0;font-weight:400}
 /* bottom nav: boxes float over the index, no bar behind them */
 .dock{position:sticky;bottom:0;padding:var(--u) 0;margin-top:auto;z-index:5;display:grid;gap:var(--u)}
 .grid4[hidden]{display:none}
+/* nav row has five boxes since SHOP was added */
+.dock #navrow{grid-template-columns:repeat(5,minmax(0,1fr))}
+/* SHOP: the word drifts right to left without stopping, one copy entering as the other leaves */
+.marq{overflow:hidden;justify-content:flex-start;padding:0}
+.mq{display:flex;width:200%;animation:mq 7s linear infinite}
+.mq span{width:50%;padding:4px 8px;white-space:nowrap}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.mq{animation:none}}
+/* shop cards: black instead of the key color, text reversed to white; hovering swaps to the second photo */
+.pcard{background:var(--ink);color:var(--paper)}
+.pcard:hover,.pcard[aria-current="true"]{background:var(--ink)}
+.pimg{position:relative;margin-top:auto}
+.pimg img{margin:0}
+.pimg .alt{position:absolute;inset:0;opacity:0;transition:opacity .12s}
+.pcard:hover .pimg .alt,.pcard:focus-visible .pimg .alt{opacity:1}
+.pcard .cta{border-bottom:1px solid currentColor}
+/* product page */
+.product .shot{width:100%;height:auto;aspect-ratio:1/1;object-fit:cover}
+.opts{display:grid;gap:var(--u)}
+.opt{display:grid;gap:6px}
+.optrow{display:flex;flex-wrap:wrap;gap:8px}
+.optrow .box{width:auto;min-width:64px;justify-content:center}
+.qty{display:flex;align-items:stretch}
+.qty button,.qty output{min-width:var(--row);min-height:var(--row);display:flex;align-items:center;justify-content:center;border:1px solid var(--ink);margin-left:-1px}
+.qty button:first-child{margin-left:0}
+.qty button:hover{background:var(--hi)}
+.buy{justify-content:center;background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.buy:hover{background:var(--hi);color:var(--ink)}
+.note{font-size:var(--sm);line-height:1.5}
 .box[aria-expanded="true"]{background:var(--hi)}
 
 /* entry */
@@ -162,6 +191,7 @@ body.split .left .cards{grid-template-columns:1fr}
   .pane.left{padding-bottom:72px}
   .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
   .dock .grid4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .dock #navrow{grid-template-columns:repeat(3,minmax(0,1fr))}
   .dock #panel{grid-template-columns:repeat(2,minmax(0,1fr))}
   .rows a{grid-template-columns:1fr auto}
   .rows a span:first-child{grid-column:1/-1}
@@ -185,10 +215,11 @@ body.split .left .cards{grid-template-columns:1fr}
     <div id="lview" style="display:flex;flex-direction:column;gap:var(--u)"><p class="sm muted">Loading entries…</p></div>
     <nav class="dock" aria-label="Sections">
       <div class="grid4 sm" id="panel" hidden></div>
-      <div class="grid4 sm">
+      <div class="grid4 sm" id="navrow">
         <button class="box" id="t-forms" data-p="forms" aria-expanded="false" aria-controls="panel"><span>Journal</span><span>+</span></button>
         <button class="box" id="t-sort" data-p="sort" aria-expanded="false" aria-controls="panel"><span>Sorting</span><span>+</span></button>
         <a class="box" href="#writers" data-r="writers"><span>Writers</span></a>
+        <a class="box marq" href="#shop" data-r="shop" aria-label="Shop"><span class="mq" aria-hidden="true"><span>Shop</span><span>Shop</span></span></a>
         <a class="box" href="#about" data-r="about"><span>About</span></a>
       </div>
     </nav>
@@ -267,6 +298,60 @@ function writers(){
     a.addEventListener('mouseenter',show); a.addEventListener('focus',show);
     const hide=()=>{a.lastElementChild.textContent='';}; a.addEventListener('mouseleave',hide); a.addEventListener('blur',hide);
   });
+}
+/* shop: two items for now; option lists follow a standard shirt layout (color, size, quantity) */
+const PRODUCTS=[
+  {n:1,name:'카바저널 자수 셔츠',price:32000,img:'shop/shirt-black.jpg',hover:'shop/shirt-white.jpg',
+   colors:[{k:'Black',img:'shop/shirt-black.jpg'},{k:'White',img:'shop/shirt-white.jpg'}],sizes:['S','M','L','XL'],
+   desc:['카바저널 로고를 왼쪽 가슴에 자수로 새긴 반팔 티셔츠.','블랙은 CAVA JOURNAL 레터링, 화이트는 오벌 자수입니다.']},
+  {n:2,name:'카바저널 토트백',price:28000,img:'shop/tote.jpg',
+   colors:[],sizes:[],desc:['CAVA JOURNAL 레터링이 들어간 실버 토트백.']}
+];
+const won=v=>'₩'+v.toLocaleString('en-US');
+let curP=0;
+const pcard=p=>`<a class="card pcard" href="#p-${p.n}" ${p.n===curP?'aria-current="true"':''}>
+  <h3 class="lg">${esc(p.name)}</h3>
+  <div class="meta sm"><span>${won(p.price)}</span><span class="r cta">Add to cart</span></div>
+  <div class="pimg"><img src="${p.img}" alt="" loading="lazy">${p.hover?`<img class="alt" src="${p.hover}" alt="" loading="lazy">`:''}</div></a>`;
+function shop(){
+  leftView='shop';
+  L.innerHTML=`<div class="grid2 cards" id="shopcards">${PRODUCTS.map(pcard).join('')}</div>`;
+}
+function product(n){
+  const p=PRODUCTS.find(x=>x.n===n); if(!p) return;
+  curP=n; current=0; writerOpen=true; document.body.classList.remove('split');
+  const i=PRODUCTS.indexOf(p), prev=PRODUCTS[i-1], next=PRODUCTS[i+1];
+  const sel={color:p.colors[0]?.k||'',size:'',qty:1};
+  R.innerHTML=`<article class="entry product">
+    <div class="head"><h1 class="lg">${esc(p.name)}</h1>
+      <span class="chips sm">${prev?`<a class="chip plain" href="#p-${prev.n}" aria-label="Previous item">&lt;</a>`:''}${next?`<a class="chip plain" href="#p-${next.n}" aria-label="Next item">&gt;</a>`:''}<button class="chip plain" id="xbtn" aria-label="Close" title="Close">X</button></span></div>
+    <div class="meta sm"><span>${won(p.price)}</span><span class="chips"><a class="chip back" href="#shop">All items</a></span></div>
+    <img class="shot" id="shot" src="${p.img}" alt="${esc(p.name)}">
+    ${p.desc.map(t=>`<p>${esc(t)}</p>`).join('')}
+    <div class="opts sm">
+      ${p.colors.length?`<div class="opt"><span>Color</span><div class="optrow" id="o-color">${p.colors.map(c=>`<button class="box" data-v="${c.k}" aria-pressed="${c.k===sel.color}">${c.k}</button>`).join('')}</div></div>`:''}
+      ${p.sizes.length?`<div class="opt"><span>Size</span><div class="optrow" id="o-size">${p.sizes.map(z=>`<button class="box" data-v="${z}" aria-pressed="false">${z}</button>`).join('')}</div></div>`:''}
+      <div class="opt"><span>Quantity</span><div class="qty"><button id="q-dn" aria-label="One fewer">−</button><output id="q-n">1</output><button id="q-up" aria-label="One more">+</button></div></div>
+      <button class="box buy" id="buy">Add to cart · ${won(p.price)}</button>
+      <p class="note" id="buynote" aria-live="polite"></p>
+    </div>
+    <hr class="rule">
+    <p class="sm">More merch</p>
+    <div class="grid2 cards">${PRODUCTS.filter(x=>x!==p).map(pcard).join('')}</div>
+  </article>`;
+  const pick=(id,key,after)=>{const row=$(id); if(!row) return; row.addEventListener('click',ev=>{const b=ev.target.closest('button'); if(!b) return;
+    sel[key]=b.dataset.v; row.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); $('buynote').textContent=''; after&&after();});};
+  pick('o-color','color',()=>{$('shot').src=p.colors.find(c=>c.k===sel.color).img;});
+  pick('o-size','size');
+  const setQ=d=>{sel.qty=Math.max(1,Math.min(20,sel.qty+d)); $('q-n').textContent=sel.qty; $('buy').textContent='Add to cart · '+won(p.price*sel.qty);};
+  $('q-dn').addEventListener('click',()=>setQ(-1)); $('q-up').addEventListener('click',()=>setQ(1));
+  $('buy').addEventListener('click',()=>{
+    if(p.sizes.length&&!sel.size){ $('buynote').textContent='Choose a size first.'; return; }
+    $('buynote').textContent=`Added: ${p.name}${sel.color?' / '+sel.color:''}${sel.size?' / '+sel.size:''} × ${sel.qty}`;
+  });
+  $('xbtn').addEventListener('click',closeEntry);
+  R.scrollTop=0; if(!wide()) window.scrollTo(0,0);
+  if(leftView==='shop') L.querySelectorAll('.pcard').forEach(a=>a.getAttribute('href')==='#p-'+n?a.setAttribute('aria-current','true'):a.removeAttribute('aria-current'));
 }
 function about(){
   leftView='about';
@@ -398,15 +483,17 @@ if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>layoutSta
 window.addEventListener('resize',applyView);
 function route(){
   const h=location.hash.slice(1)||'home';
-  const w=h.match(/^w-(\d+)$/);
-  const m=h.match(/^e-(\d+)$/)||w;
+  const w=h.match(/^w-(\d+)$/), pm=h.match(/^p-(\d+)$/);
+  const m=h.match(/^e-(\d+)$/)||w||pm;
+  if(!pm) curP=0;
   if(m) closed=false;
   document.body.classList.toggle('reading',!!m);
   document.body.classList.toggle('closed',closed);
-  if(w){ writer(+w[1]); if(!leftView) home(); }
+  if(pm){ if(leftView!=='shop') shop(); product(+pm[1]); keepAnchor(); }
+  else if(w){ writer(+w[1]); if(!leftView) home(); }
   else if(m){ entry(+m[1]); if(!leftView) home(); else if(leftView==='home') draw(); keepAnchor(); }
   else{
-    if(h==='writers') writers(); else if(h==='about') about(); else home();
+    if(h==='writers') writers(); else if(h==='about') about(); else if(h==='shop') shop(); else home();
     draw();
     $('left').scrollTop=0; if(!wide()) window.scrollTo(0,0);
   }
