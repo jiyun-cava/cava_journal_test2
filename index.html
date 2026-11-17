@@ -89,9 +89,9 @@ h1,h2,h3,p{margin:0;font-weight:400}
 .mq span{width:50%;padding:4px 8px;white-space:nowrap}
 @keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.mq{animation:none}}
-/* shop cards: black instead of the key color, text reversed to white; hovering swaps to the second photo */
-.pcard{background:var(--ink);color:var(--paper)}
-.pcard:hover,.pcard[aria-current="true"]{background:var(--ink)}
+/* shop cards: same as article cards at rest (stroke, no fill); on hover or when open they turn black with
+   white text instead of the key color, and the shirt swaps to its second photo */
+.pcard:hover,.pcard:focus-visible,.pcard[aria-current="true"]{background:var(--ink);color:var(--paper)}
 .pimg{position:relative;margin-top:auto}
 .pimg img{margin:0}
 .pimg .alt{position:absolute;inset:0;opacity:0;transition:opacity .12s}
