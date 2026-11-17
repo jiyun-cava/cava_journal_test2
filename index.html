@@ -18,7 +18,7 @@
   --glass:rgba(255,255,255,.72);
   --u:12px;            /* the one spacing unit: gutters, gaps, padding */
   --row:32px;          /* height shared by bands and boxes */
-  --lg:clamp(22px,2.1vw,30px);
+  --lg:clamp(20px,1.6vw,24px);
   --md:17px;
   --sm:12px;
   --font:Futura,"Futura PT","Futura Std",Jost,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
@@ -103,14 +103,12 @@ body.split .cards,body.split .dock .grid4{grid-template-columns:repeat(2,minmax(
 body.split .left .cards{grid-template-columns:1fr}
 .v2,.v3{max-width:none}
 .v2 .reader{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--u);align-items:start}
-.v2 .stage{display:block;position:relative}
-.seg{position:absolute;left:0;width:100%}
-.pin{position:sticky;top:0;display:grid;gap:var(--u);visibility:hidden}
-.pin.on{visibility:visible}
+.v2 .stage{display:flex;align-items:center;position:sticky;top:0;height:var(--ph,80vh);overflow:clip}
+.pin{display:grid;gap:var(--u);width:100%;will-change:transform}
 .pin.multi{grid-template-columns:1fr 1fr}
 .pin figure{margin:0;min-width:0}
-.pin img{width:100%;height:auto;max-height:calc(var(--ph,600px) - 72px);object-fit:contain;object-position:left top}
-.pin.multi img{max-height:calc((var(--ph,600px) - 96px)/2)}
+.pin img{width:100%;height:auto;max-height:calc(var(--ph,600px) - 120px);object-fit:contain;object-position:left center}
+.pin.multi img{max-height:calc((var(--ph,600px) - 160px)/2)}
 .pin figcaption{font-size:var(--sm);line-height:1.5;margin-top:6px}
 .v2 .body figcaption,.v2 .body .cap,.v3 .body figcaption,.v3 .body .cap,.v4 .body figcaption,.v4 .body .cap{display:none}
 .v2 .body img{height:0;margin:0;visibility:hidden}
@@ -288,31 +286,36 @@ function buildStage(){
   b.querySelectorAll('img').forEach(m=>{const c=capOf(m); if(c&&c.tagName==='H6') c.classList.add('cap');});
   layoutStage();
 }
+let groups=[],shown=-1;
+const MIN_GAP=320, EXIT=220;   /* images closer than MIN_GAP share the stage; an image drifts up over its last EXIT px */
 function layoutStage(){
   const st=$('stage'), b=$('body'); if(!st||!b||!R.querySelector('.entry.v2')) return;
-  const top=b.getBoundingClientRect().top, ph=R.clientHeight, off=ph*.3;
-  st.style.setProperty('--ph',ph+'px');
-  const groups=[{y:0,items:[]}];
+  const top=b.getBoundingClientRect().top;
+  st.style.setProperty('--ph',R.clientHeight+'px');
+  groups=[{y:-1e6,items:[]}];
   if(P[current-1].cover) groups[0].items.push({src:P[current-1].cover,cap:''});
   b.querySelectorAll('img').forEach(m=>{
     const y=m.getBoundingClientRect().top-top, c=capOf(m), it={src:m.getAttribute('src'),cap:c?c.textContent.trim():''};
     const g=groups[groups.length-1];
-    if(g.items.length&&g.items.length<4&&y-g.y<40&&g.y>0) g.items.push(it); else if(!g.items.length) {g.y=y; g.items.push(it);} else groups.push({y,items:[it]});
+    if(!g.items.length) g.items.push(it);
+    else if(groups.length>1&&g.items.length<4&&y-g.y<MIN_GAP) g.items.push(it);
+    else groups.push({y,items:[it]});
   });
-  const total=Math.max(b.offsetHeight,ph);
-  let prev=-1;
-  groups.forEach((g,i)=>{g.t=i?Math.max(prev+1,g.y-off):0; prev=g.t;});
-  st.innerHTML=groups.map((g,i)=>{const h=(i<groups.length-1?groups[i+1].t:total)-g.t;
-    return `<div class="seg" style="top:${g.t}px;height:${h}px"><div class="pin${g.items.length>1?' multi':''}${i?'':' on'}">${g.items.map(x=>`<figure><img src="${x.src}" alt="">${x.cap?`<figcaption>${esc(x.cap)}</figcaption>`:''}</figure>`).join('')}</div></div>`;}).join('');
-  st.style.minHeight=total+'px';
-  showPins();
+  groups.forEach(g=>g.items.forEach(x=>{const i=new Image();i.src=x.src;}));   /* preload so each swap is instant */
+  shown=-1; showPins();
 }
 function showPins(){
-  const st=$('stage'); if(!st||!R.querySelector('.entry.v2')) return;
-  const line=R.getBoundingClientRect().top+2;
-  const segs=[...st.querySelectorAll('.seg')]; let cur=0;
-  segs.forEach((sg,i)=>{if(sg.getBoundingClientRect().top<=line) cur=i;});
-  segs.forEach((sg,i)=>sg.firstElementChild.classList.toggle('on',i===cur));
+  const st=$('stage'), b=$('body'); if(!st||!b||!groups.length||!R.querySelector('.entry.v2')) return;
+  const r=R.getBoundingClientRect(), line=r.top+r.height*.5-b.getBoundingClientRect().top;   /* middle of the pane, in body coordinates */
+  let cur=0; groups.forEach((g,i)=>{if(g.y<=line) cur=i;});
+  if(cur!==shown){
+    const g=groups[cur]; shown=cur;
+    st.innerHTML=`<div class="pin${g.items.length>1?' multi':''}">${g.items.map(x=>`<figure><img src="${x.src}" alt="">${x.cap?`<figcaption>${esc(x.cap)}</figcaption>`:''}</figure>`).join('')}</div>`;
+  }
+  const next=groups[cur+1], pin=st.firstElementChild;
+  let shift=0;
+  if(next){ const span=next.y-Math.max(groups[cur].y,-EXIT*4), ex=Math.min(EXIT,span*.4), d=next.y-line; if(d<ex) shift=-(ex-d); }
+  if(pin) pin.style.transform=shift?`translateY(${shift}px)`:'';
 }
 R.addEventListener('scroll',showPins,{passive:true});
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>layoutStage());
