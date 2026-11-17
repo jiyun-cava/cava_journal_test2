@@ -68,6 +68,8 @@ h1,h2,h3,p{margin:0;font-weight:400}
 .rows{list-style:none;margin:0;padding:0;display:grid;gap:var(--u)}
 .rows a{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto;gap:var(--u);align-items:baseline;border:1px solid var(--ink);padding:6px 8px;min-height:var(--row);transition:background-color .12s}
 .rows a:hover{background:var(--hi)}
+.wlist a{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+.wlist .quote{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* bottom nav: boxes float over the index, no bar behind them */
 .dock{position:sticky;bottom:0;padding:var(--u) 0;margin-top:auto;z-index:5;display:grid;gap:var(--u)}
@@ -238,8 +240,13 @@ function writers(){
   leftView='writers';
   const by={}; P.forEach(e=>(by[e.who]=by[e.who]||[]).push(e));
   const names=Object.keys(by).sort((a,b)=>a.localeCompare(b,'ko'));
-  L.innerHTML=`<div class="band"><span>Writers</span><span class="sm">${names.length}</span></div>
-    <ul class="rows">${names.map(n=>by[n].map(row).join('')).join('')}</ul>`;
+  L.innerHTML=`<ul class="rows wlist">${names.map(n=>`<li><a href="#w-${pad(by[n][0].n)}" data-w="${esc(n)}"><span>${esc(n)}</span><span class="quote"></span></a></li>`).join('')}</ul>`;
+  /* hovering a name shows one random line from that writer's entries */
+  L.querySelectorAll('.wlist a').forEach(a=>{
+    const show=()=>{const qs=by[a.dataset.w].flatMap(e=>e.q||[]); a.lastElementChild.textContent=qs.length?qs[Math.floor(Math.random()*qs.length)]:'';};
+    a.addEventListener('mouseenter',show); a.addEventListener('focus',show);
+    const hide=()=>{a.lastElementChild.textContent='';}; a.addEventListener('mouseleave',hide); a.addEventListener('blur',hide);
+  });
 }
 function about(){
   leftView='about';
