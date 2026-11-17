@@ -68,7 +68,8 @@ h1,h2,h3,p{margin:0;font-weight:400}
 .rows{list-style:none;margin:0;padding:0;display:grid;gap:var(--u)}
 .rows a{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto;gap:var(--u);align-items:baseline;border:1px solid var(--ink);padding:6px 8px;min-height:var(--row);transition:background-color .12s}
 .rows a:hover{background:var(--hi)}
-.wlist a{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+.wlist a{grid-template-columns:minmax(96px,200px) minmax(0,1fr)}
+.wlist a:hover,.wlist a:focus-visible{background:var(--hc,var(--hi))}
 .wlist .quote{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* bottom nav: boxes float over the index, no bar behind them */
@@ -236,11 +237,13 @@ $('panel').addEventListener('click',ev=>{
   if(b.dataset.s){ sort=b.dataset.s; if(sort==='Shuffle'){ shuffled=[...P]; for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];} } }
   draw(); drawPanel(); $('left').scrollTop=0;
 });
+/* hover color runs from the highlight green at the top of the list to fluorescent yellow at the bottom */
+const mix=t=>{const a=[0x39,0xff,0x14], b=[0xf0,0xff,0x00]; return 'rgb('+a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(',')+')';};
 function writers(){
   leftView='writers';
   const by={}; P.forEach(e=>(by[e.who]=by[e.who]||[]).push(e));
   const names=Object.keys(by).sort((a,b)=>a.localeCompare(b,'ko'));
-  L.innerHTML=`<ul class="rows wlist">${names.map(n=>`<li><a href="#w-${pad(by[n][0].n)}" data-w="${esc(n)}"><span>${esc(n)}</span><span class="quote"></span></a></li>`).join('')}</ul>`;
+  L.innerHTML=`<ul class="rows wlist">${names.map((n,i)=>`<li><a href="#w-${pad(by[n][0].n)}" data-w="${esc(n)}" style="--hc:${mix(i/Math.max(1,names.length-1))}"><span>${esc(n)}</span><span class="quote"></span></a></li>`).join('')}</ul>`;
   /* hovering a name shows one random line from that writer's entries */
   L.querySelectorAll('.wlist a').forEach(a=>{
     const show=()=>{const qs=by[a.dataset.w].flatMap(e=>e.q||[]); a.lastElementChild.textContent=qs.length?qs[Math.floor(Math.random()*qs.length)]:'';};
@@ -296,7 +299,8 @@ let view=1, writerOpen=false, closed=false;
 function closeEntry(){
   closed=true; current=0; writerOpen=false; R.innerHTML='';
   document.body.classList.remove('split');
-  if(location.hash==='#home'||!location.hash) route(); else location.hash='#home';
+  const back='#'+(leftView&&leftView!=='home'?leftView:'home');   /* return to whichever list is open on the left */
+  if(location.hash===back||(back==='#home'&&!location.hash)) route(); else location.hash=back;
 }
 const SIG='sig/jungwooyoung.png';   /* placeholder: one signature shown on every entry until each writer has their own */
 /* writer page: replaces the open entry in the right pane */
