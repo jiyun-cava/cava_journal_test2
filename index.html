@@ -97,6 +97,10 @@ h1,h2,h3,p{margin:0;font-weight:400}
 .body table{border-collapse:collapse}
 .body td{border:1px solid var(--ink);padding:6px 8px;vertical-align:top}
 .stage{display:none}
+/* entry closed: the index takes the whole window */
+body.closed .app{grid-template-columns:1fr}
+body.closed .right{display:none}
+body.closed .left .cards{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
 /* split view: the index narrows to one column so text and image each get a third of the window */
 body.split .app{grid-template-columns:1fr 2fr}
 body.split .cards,body.split .dock .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -250,7 +254,7 @@ async function entry(n){
   R.innerHTML=`<article class="entry">
     <h1 class="lg"><span class="who">${esc(e.who)}</span><br>${esc(e.t)}</h1>
     <div class="meta sm"><span>No.${e.no}</span><span>${e.d.replace(/\./g,'')}</span><span>${e.form}</span>
-      <span class="chips"><a class="chip back" href="#home">All entries</a><button class="chip" id="vbtn" title="Change how this entry is laid out"></button>${prev?`<a class="chip" href="#e-${pad(prev.n)}" aria-label="Newer entry">&lt;</a>`:''}${next?`<a class="chip" href="#e-${pad(next.n)}" aria-label="Older entry">&gt;</a>`:''}</span></div>
+      <span class="chips"><a class="chip back" href="#home">All entries</a><button class="chip" id="vbtn" title="Change how this entry is laid out"></button>${prev?`<a class="chip" href="#e-${pad(prev.n)}" aria-label="Newer entry">&lt;</a>`:''}${next?`<a class="chip" href="#e-${pad(next.n)}" aria-label="Older entry">&gt;</a>`:''}<button class="chip" id="xbtn" aria-label="Close entry" title="Close entry">X</button></span></div>
     ${e.cover?`<img class="cover" src="${e.cover}" alt="">`:''}
     <div class="reader"><div class="body" id="body"><p class="sm muted">Loading…</p></div>
       <div class="stage" id="stage"></div></div>
@@ -264,6 +268,7 @@ async function entry(n){
   writerOpen=false;
   $('vbtn').addEventListener('click',()=>{view=view%4+1;applyView();});
   $('wbtn').addEventListener('click',toggleWriter);
+  $('xbtn').addEventListener('click',closeEntry);
   applyView();
   R.scrollTop=0; if(!wide()) window.scrollTo(0,0);
   try{
@@ -278,7 +283,12 @@ async function entry(n){
   }
 }
 /* entry views: 01 images inline, 02 text left with the current image pinned right, 03 large centered text, 04 text only */
-let view=1, writerOpen=false;
+let view=1, writerOpen=false, closed=false;
+function closeEntry(){
+  closed=true; current=0; writerOpen=false; R.innerHTML='';
+  document.body.classList.remove('split');
+  if(location.hash==='#home'||!location.hash) route(); else location.hash='#home';
+}
 const SIG={'정우영':'sig/jungwooyoung.png'};
 function toggleWriter(){
   writerOpen=!writerOpen;
@@ -357,11 +367,14 @@ window.addEventListener('resize',applyView);
 function route(){
   const h=location.hash.slice(1)||'home';
   const m=h.match(/^e-(\d+)$/);
+  if(m) closed=false;
   document.body.classList.toggle('reading',!!m);
+  document.body.classList.toggle('closed',closed);
   if(m){ entry(+m[1]); if(!leftView) home(); else if(leftView==='home') draw(); }
   else{
     if(h==='writers') writers(); else if(h==='about') about(); else home();
-    if(!current) entry(1);
+    if(!current&&!closed) entry(1);
+    draw();
     $('left').scrollTop=0; if(!wide()) window.scrollTo(0,0);
   }
   const on=m?leftView:h;
