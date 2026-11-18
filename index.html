@@ -385,7 +385,7 @@ async function entry(n){
   applyView();
   R.scrollTop=0; if(!wide()) window.scrollTo(0,0);
   try{
-    const j=await (await fetch('a/'+pad(n)+'.json')).json();
+    const j=await (await fetch('a/'+(e.f||pad(n))+'.json')   /* file key stays fixed when newer entries push the list down */).json();
     if(current!==n) return;
     const b=$('body'); b.innerHTML=j.html;
     b.querySelectorAll('p').forEach(x=>{if(!x.textContent.trim()&&!x.querySelector('img'))x.remove();});
