@@ -173,7 +173,9 @@ body.split .left .cards{grid-template-columns:1fr}
 
 .pin figcaption{font-size:var(--sm);line-height:1.5;margin-top:6px}
 .v2 .body figcaption,.v2 .body .cap,.v3 .body figcaption,.v3 .body .cap,.v4 .body figcaption,.v4 .body .cap{display:none}
-.v2 .body img,.v2 .body video{height:0;margin:0;visibility:hidden}
+video{max-width:100%}
+/* in Split the body keeps each picture only as a zero-height marker; the column on the right shows it */
+.v2 .body img,.v2 .body video{height:0!important;min-height:0;max-height:0;margin:0;padding:0;border:0;visibility:hidden;overflow:hidden;object-fit:none}
 .v2 .cover,.v3 .cover,.v4 .cover,.v3 .body img,.v4 .body img,.v3 .body video,.v4 .body video,.v3 .body figure,.v4 .body figure{display:none}
 .v3 .body{font-size:var(--lg);line-height:1.5;max-width:26em;margin:0 auto;text-align:center}
 .about{display:grid;gap:var(--u);max-width:62ch}
@@ -238,6 +240,7 @@ const ABOUT={
     '카바가 질문을 던지고, 필진이 자기 시선으로 답합니다.'],
   email:'info@ca-va.life', ig:'cava.life'
 };
+const BUILD='202611181238';   /* bump on every publish so a page always reads data from its own release */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pad=n=>String(n).padStart(2,'0');
@@ -386,7 +389,7 @@ async function entry(n){
   applyView();
   R.scrollTop=0; if(!wide()) window.scrollTo(0,0);
   try{
-    const j=await (await fetch('a/'+(e.f||pad(n))+'.json')   /* file key stays fixed when newer entries push the list down */).json();
+    const j=await (await fetch('a/'+(e.f||pad(n))+'.json?v='+BUILD)   /* file key stays fixed when newer entries push the list down */).json();
     if(current!==n) return;
     const b=$('body'); b.innerHTML=j.html;
     b.querySelectorAll('p').forEach(x=>{if(!x.textContent.trim()&&!x.querySelector('img'))x.remove();});
@@ -537,7 +540,7 @@ function keepAnchor(){
 }
 window.addEventListener('hashchange',route);
 
-fetch('posts.json').then(r=>r.json()).then(d=>{
+fetch('posts.json?v='+BUILD).then(r=>r.json()).then(d=>{
   P=d; forms=[...new Set(P.map(e=>e.form))]; route();
 }).catch(()=>{L.innerHTML='<p>The entry list did not load. Reload the page to try again.</p>';});
 </script>
