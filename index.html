@@ -158,6 +158,8 @@ body.split .cards,body.split .dock .grid4{grid-template-columns:repeat(2,minmax(
 body.split .left .cards{grid-template-columns:1fr}
 .v2,.v3{max-width:none}
 .v2 .reader{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--u);align-items:start}
+/* room after the last paragraph so the reading line can pass every picture before the column scrolls away */
+.v2 .body{padding-bottom:60vh}
 .v2 .stage{display:flex;align-items:center;position:sticky;top:0;height:var(--ph,80vh);overflow:clip}
 .pin{display:grid;gap:var(--u);width:100%;will-change:transform}
 .pin figure{margin:0;min-width:0}
@@ -240,7 +242,7 @@ const ABOUT={
     '카바가 질문을 던지고, 필진이 자기 시선으로 답합니다.'],
   email:'info@ca-va.life', ig:'cava.life'
 };
-const BUILD='202611181238';   /* bump on every publish so a page always reads data from its own release */
+const BUILD='202611181600';   /* bump on every publish so a page always reads data from its own release */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pad=n=>String(n).padStart(2,'0');
@@ -468,8 +470,9 @@ function showPins(){
   const r=R.getBoundingClientRect();
   /* middle of the pane, in body coordinates. While the image column itself is scrolling (before it pins at the
      top, and after the article ends) the reference line is held still, so the pictures never move on top of it. */
-  const line=r.top+r.height*.5-b.getBoundingClientRect().top+(st.getBoundingClientRect().top-r.top);
-  let cur=0; groups.forEach((g,i)=>{if(g.y<=line) cur=i;});
+  const lag=st.getBoundingClientRect().top-r.top;             /* >0 before the column pins, <0 after the article ends */
+  const line=r.top+r.height*.5-b.getBoundingClientRect().top+lag;   /* held still whenever the column itself is moving */
+  let cur=0; if(lag<=1) groups.forEach((g,i)=>{if(g.y<=line) cur=i;});   /* the cover stays until the column pins */
   if(cur!==shown){
     const g=groups[cur]; shown=cur;
     st.innerHTML=`<div class="pin${g.items.length>1?' multi':''}">${g.items.map(x=>`<figure>${x.vid?`<video src="${x.src}" poster="${x.poster}" muted loop playsinline autoplay controls></video>`:`<img src="${x.src}" alt="">`}${x.cap?`<figcaption>${esc(x.cap)}</figcaption>`:''}</figure>`).join('')}</div>`;
